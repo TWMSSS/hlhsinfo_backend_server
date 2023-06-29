@@ -8,7 +8,7 @@ use crate::{
     request_handler::AuthorizationToken,
     types::{APIResponseJSON, UserData, AuthToken, UserDataValues, UserCollect},
     http::{APIPaths, ReplaceString, http_get},
-    utils::{combine_page_path, create_auth_header, generate_http_error, generate_session_expire_error, combine_path, buffer_to_base64, is_document_logined}
+    utils::{combine_page_path, create_auth_header, generate_session_expire_error, combine_path, buffer_to_base64, http_get_err_handle, html_to_text}
 };
 
 lazy_static! {
@@ -72,17 +72,11 @@ async fn get_datas(document: &str) -> Vec<UserDataValues> {
         for _ in &felids {
             if index % 2 == 0 && index != 0 {
                 vector.push(UserDataValues {
-                    name: felids[index - 2]
-                        .text()
-                        .collect::<Vec<_>>()
-                        .join("")
+                    name: html_to_text(felids[index - 2])
                         .replace(" ", "")
                         .replace("　", "")
                         .replace("\n", ""),
-                    value: felids[index - 1]
-                        .text()
-                        .collect::<Vec<_>>()
-                        .join("")
+                    value: html_to_text(felids[index - 1])
                         .replace(" ", "")
                         .replace("\r\n", "")
                         .replace("\n", "")
@@ -102,19 +96,14 @@ pub async fn api(auth: AuthorizationToken<AuthToken>) -> APIResponseJSON<UserDat
 
     let page = combine_page_path(&token.host, APIPaths::Profile);
 
-    let data = match http_get(&page, Some(create_auth_header(&token.cookie))).await {
-        Ok(d) => d,
-        Err(err) => return Err(generate_http_error(API_PATH, err))
-    };
+    let data = http_get_err_handle(API_PATH, &page, Some(create_auth_header(&token.cookie))).await?;
 
-    let is_success = data.status().is_success();
-    let html_doc = data.text().await.unwrap();
-
-    if !is_success && !is_document_logined(&Html::parse_document(&html_doc)) {
+    if !data.status().is_success() {
         return Err(generate_session_expire_error(API_PATH))
     }
 
-    let (image_data, profile_data) = join!(get_image(token, &html_doc), get_datas(&html_doc));
+    let raw = data.text().await.unwrap();
+    let (image_data, profile_data) = join!(get_image(token, &raw), get_datas(&raw));
 
     Ok(Custom(Status::Ok, Json(UserData {
         message: "Get user profile successful".to_owned(),

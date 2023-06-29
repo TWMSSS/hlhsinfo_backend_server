@@ -13,7 +13,7 @@ use crate::{
 };
 
 lazy_static! {
-    static ref EXPIRED_TIME: u128 = read_config().login_status_expired.into();
+    static ref EXPIRED_TIME: u64 = read_config().login_status_expired.into();
 }
 
 const API_PATH: &str = "/v1/login";

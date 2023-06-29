@@ -3,8 +3,8 @@ use rocket::http::ContentType;
 use crate::{
     request_handler::AuthorizationToken,
     types::{HTTPResponse, LoginInfoAuthToken},
-    utils::{self, create_auth_header, generate_http_error},
-    http::{http_get, APIPaths},
+    utils::{self, create_auth_header, http_get_err_handle},
+    http::APIPaths,
     responder::FileResponse
 };
 
@@ -15,10 +15,12 @@ pub async fn api(auth: AuthorizationToken<LoginInfoAuthToken>) -> HTTPResponse<F
     let token = auth.0;
     let page = utils::combine_page_path(&token.host, APIPaths::LoginCaptcha);
 
-    let captcha: Vec<u8> = match http_get(&page, Some(create_auth_header(&token.cookie))).await {
-        Ok(res) => res.bytes().await.unwrap().into_iter().collect(),
-        Err(err) => return Err(generate_http_error(API_PATH, err))
-    };
+    let captcha: Vec<u8> = http_get_err_handle(API_PATH, &page, Some(create_auth_header(&token.cookie))).await?
+        .bytes()
+        .await
+        .unwrap()
+        .into_iter()
+        .collect();
 
     Ok(FileResponse {
         content_type: ContentType::GIF,

@@ -6,6 +6,7 @@ mod login;
 mod get_user_info_short;
 mod get_user_profile;
 mod get_available_score;
+mod get_reward_and_punish;
 
 pub fn init_v1_api(server: Rocket<Build>) -> Rocket<Build> {
     server.mount("/v1", routes![
@@ -17,6 +18,7 @@ pub fn init_v1_api(server: Rocket<Build>) -> Rocket<Build> {
         // User data
         get_user_info_short::api,
         get_user_profile::api,
-        get_available_score::api
+        get_available_score::api,
+        get_reward_and_punish::api
     ])
 }

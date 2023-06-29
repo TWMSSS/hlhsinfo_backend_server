@@ -1,4 +1,4 @@
-use jsonwebtoken::{decode, encode, Algorithm, Header, Validation, EncodingKey, DecodingKey};
+use jsonwebtoken::{decode, encode, Algorithm, Header, Validation, EncodingKey, DecodingKey, errors::ErrorKind};
 use serde::{Serialize, de::DeserializeOwned};
 use std::{path::Path, fs::{File, read_to_string}, io::prelude::*};
 use openssl::{pkey::Private, rsa::Rsa, hash::{Hasher, MessageDigest}};
@@ -21,6 +21,11 @@ pub struct KeyPair {
     private: EncodingKey,
     public: DecodingKey,
     algorithm: Algorithm
+}
+
+pub enum JWTError {
+    Expired,
+    Invalid
 }
 
 impl KeyPair {
@@ -56,9 +61,15 @@ impl KeyPair {
         Ok(encode(&Header::new(self.algorithm), claims, &self.private)?)
     }
 
-    pub fn decode_jwt<T: DeserializeOwned>(&self, token: &str) -> Result<jsonwebtoken::TokenData<T>, Box<dyn std::error::Error + Send>> {
+    pub fn decode_jwt<T: DeserializeOwned>(&self, token: &str) -> Result<jsonwebtoken::TokenData<T>, JWTError> {
         let validation = Validation::new(self.algorithm);
-        Ok(decode::<T>(token, &self.public, &validation).expect("Cannot decode jwt"))
+        match decode::<T>(token, &self.public, &validation) {
+            Ok(jwt) => Ok(jwt),
+            Err(err) => match err.kind() {
+                ErrorKind::ExpiredSignature => Err(JWTError::Expired),
+                _ => Err(JWTError::Invalid)
+            }
+        }
     }
 }
 
@@ -66,7 +77,7 @@ pub fn sign<T: Serialize>(claims: &T) -> Result<std::string::String, Box<dyn std
     KEY.sign::<T>(claims)
 }
 
-pub fn decode_jwt<T: DeserializeOwned>(token: &str) -> Result<jsonwebtoken::TokenData<T>, Box<dyn std::error::Error + Send>> {
+pub fn decode_jwt<T: DeserializeOwned>(token: &str) -> Result<jsonwebtoken::TokenData<T>, JWTError> {
     KEY.decode_jwt::<T>(token)
 }
 

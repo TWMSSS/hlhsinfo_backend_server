@@ -5,7 +5,7 @@ use tokio::join;
 
 use crate::{
     request_handler::AuthorizationToken,
-    utils::{combine_page_path, create_auth_header},
+    utils::{combine_page_path, create_auth_header, html_to_text},
     types::{UserProfileShortValue, APIResponseJSON, UserProfileShortData, AuthToken, LoginInfoAuthToken},
     http::{APIPaths, http_get_html},
     error::FetchError
@@ -31,10 +31,7 @@ async fn fetch_class(host: &str, cookie: &str) -> Result<String, FetchError> {
     };
 
     if let Some(ele) = data.select(&CLASS_DATA).next() {
-        let s = ele
-            .text()
-            .collect::<Vec<_>>()
-            .join("")
+        let s = html_to_text(ele)
             .replace(" ", "")
             .replace("\n\n\n", "")
             .split("：")
@@ -60,10 +57,7 @@ async fn fetch_user(host: &str, cookie: &str) -> Result<UserInfo, FetchError> {
     let mut data = data
         .select(&USER_DATA)
         .map(|data| {
-            data
-                .text()
-                .collect::<Vec<_>>()
-                .join("")
+            html_to_text(data)
                 .replace(" ", "")
                 .replace("\n", "")
         });

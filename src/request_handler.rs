@@ -1,7 +1,7 @@
 use rocket::{request::{FromRequest, Outcome}, http::Status, serde::json::Json, form::{Form, FromForm}, data::{FromData, self}};
 use serde::de::DeserializeOwned;
 
-use crate::secure::decode_jwt;
+use crate::secure::{decode_jwt, JWTError};
 
 pub enum AuthorizationType {
     LoginAuthToken,
@@ -13,7 +13,8 @@ pub struct AuthorizationToken<T>(pub T);
 
 #[derive(Debug)]
 pub enum AuthTokenError {
-    MissingToken
+    MissingToken,
+    TokenExpired
 }
 
 #[async_trait]
@@ -32,11 +33,14 @@ where
                 
                 match decode_jwt::<T>(&auth) {
                     Ok(tkn) => return Outcome::Success(AuthorizationToken(tkn.claims)),
-                    Err(_) => return Outcome::Failure((Status::Forbidden, AuthTokenError::MissingToken))
+                    Err(err) => match err {
+                        JWTError::Expired => return Outcome::Failure((Status::Forbidden, AuthTokenError::TokenExpired)),
+                        JWTError::Invalid => return Outcome::Failure((Status::BadGateway, AuthTokenError::MissingToken))
+                    }
                 }
             }
         }
-        Outcome::Failure((Status::Forbidden, AuthTokenError::MissingToken))
+        Outcome::Failure((Status::BadGateway, AuthTokenError::MissingToken))
     }
 }
 

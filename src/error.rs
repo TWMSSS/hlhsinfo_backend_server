@@ -16,7 +16,7 @@ impl HTTPError {
         match *self {
             HTTPError::BadRequest => "This request is incorrect. Please check your request.",
             HTTPError::Unauthorized => "You have to be authorized to access this api.",
-            HTTPError::Forbidden => "You have no premission to access this api.",
+            HTTPError::Forbidden => "You have no premission to access this api. Authorization token might be expired.",
             HTTPError::FileNotFound => "Cannot found api. Please check your api path.",
             HTTPError::ServerError => "Our server is unreachable this time.",
             HTTPError::RemoteServiceUnavailable => "Remote service is unavailable",

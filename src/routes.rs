@@ -6,7 +6,7 @@ use crate::{apis, types, utils, cors::CORS, config, error::HTTPError};
 fn home() -> Json<types::Alive> {
     Json(types::Alive {
         message: String::from(utils::HELLO_MESSAGE),
-        timestamp: utils::get_timestamp(),
+        timestamp: utils::get_timestamp_millisec(),
         provider: config::read_config().provider
     })
 }
@@ -15,7 +15,7 @@ fn home() -> Json<types::Alive> {
 fn err_bad_request() -> Json<types::ErrorResponse> {
     Json(types::ErrorResponse { 
         message: String::from(HTTPError::BadRequest.message()),
-        timestamp: utils::get_timestamp(),
+        timestamp: utils::get_timestamp_millisec(),
         wrong: None
     })
 }
@@ -24,7 +24,7 @@ fn err_bad_request() -> Json<types::ErrorResponse> {
 fn err_unauthorized() -> Json<types::ErrorResponse> {
     Json(types::ErrorResponse { 
         message: String::from(HTTPError::Unauthorized.message()),
-        timestamp: utils::get_timestamp(),
+        timestamp: utils::get_timestamp_millisec(),
         wrong: None
     })
 }
@@ -33,7 +33,7 @@ fn err_unauthorized() -> Json<types::ErrorResponse> {
 fn err_forbidden() -> Json<types::ErrorResponse> {
     Json(types::ErrorResponse { 
         message: String::from(HTTPError::Forbidden.message()),
-        timestamp: utils::get_timestamp(),
+        timestamp: utils::get_timestamp_millisec(),
         wrong: None
     })
 }
@@ -42,7 +42,7 @@ fn err_forbidden() -> Json<types::ErrorResponse> {
 fn err_not_found(req: &rocket::Request) -> Json<types::ErrorResponse> {
     Json(types::ErrorResponse { 
         message: String::from(HTTPError::FileNotFound.message()),
-        timestamp: utils::get_timestamp(),
+        timestamp: utils::get_timestamp_millisec(),
         wrong: Some(types::ResponseErrorAt {
             api: Some(req.uri().to_string()),
             trace: Some(String::from("")),
@@ -55,7 +55,7 @@ fn err_not_found(req: &rocket::Request) -> Json<types::ErrorResponse> {
 fn err_server_error() -> Json<types::ErrorResponse> {
     Json(types::ErrorResponse { 
         message: String::from(HTTPError::ServerError.message()),
-        timestamp: utils::get_timestamp(),
+        timestamp: utils::get_timestamp_millisec(),
         wrong: None
     })
 }

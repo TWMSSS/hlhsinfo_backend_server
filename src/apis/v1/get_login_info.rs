@@ -16,7 +16,7 @@ lazy_static! {
     static ref CHECK_SELECTOR: Selector = Selector::parse("meta[name=keywords]").unwrap();
     static ref VERIFY_CODE_SELECTOR: Selector = Selector::parse("input[name=__RequestVerificationToken]").unwrap();
     static ref CAPTCHA_CHECK_SELECTOR: Selector = Selector::parse("img#imgvcode").unwrap();
-    static ref EXPIRED_TIME: u128 = read_config().logininfo_expired.into();
+    static ref EXPIRED_TIME: u64 = read_config().logininfo_expired.into();
 }
 
 const API_PATH: &str = "/v1/getLoginInfo";

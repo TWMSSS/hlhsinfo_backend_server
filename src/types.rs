@@ -40,8 +40,8 @@ pub struct LoginInfoAuthToken {
     pub need_captcha: bool,
 
     // JWT config
-    pub iat: u128,       // issued at
-    pub exp: u128        // expired at
+    pub iat: u64,       // issued at
+    pub exp: u64        // expired at
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -51,8 +51,8 @@ pub struct AuthToken {
     pub user_data: UserProfileShortValue,
 
     // JWT config
-    pub iat: u128,       // issued at
-    pub exp: u128        // expired at
+    pub iat: u64,       // issued at
+    pub exp: u64        // expired at
 }
 
 // Alive JSON
@@ -189,7 +189,7 @@ pub struct RewardAndPunishDetailValue {
     pub sold: Option<String>,
     pub start: String,
     pub r#type: String,
-    pub year: u8
+    pub year: u16
 }
 
 #[derive(Debug, Serialize, Deserialize)]
