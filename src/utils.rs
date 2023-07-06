@@ -1,4 +1,4 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{time::{SystemTime, UNIX_EPOCH}, env::{consts::OS, self}};
 use lazy_static::lazy_static;
 use openssl::base64;
 use reqwest::{header::{HeaderMap, HeaderValue}, Response};
@@ -14,6 +14,18 @@ use crate::{
 
 lazy_static! {
     static ref NOT_LOGIN_SELECTOR: Selector = Selector::parse("body > div").unwrap();
+    pub static ref DEFAULT_FILE_PATH: String = {
+        match OS {
+            "linux" => "/usr/etc/hlhsinfo_backend_server".to_owned(),
+            "windows" => {
+                match env::var("APPDATA") {
+                    Ok(profile) => format!("{}{}", profile, r#"\hlhsinfo_backend_server"#),
+                    Err(_) => "".to_owned()
+                }
+            },
+            _ => "".to_owned()
+        }
+    };
 }
 
 pub const HELLO_MESSAGE: &str = "Hello from HLHSInfo Server!";
@@ -114,6 +126,20 @@ pub fn convert_string_to_u32(string: &str) -> u32 {
     match string.parse::<u32>() {
         Ok(int) => int,
         Err(_) => 0
+    }
+}
+
+pub fn convert_string_to_f32(string: &str) -> f32 {
+    match string.parse::<f32>() {
+        Ok(float) => float,
+        Err(_) => 0.0
+    }
+}
+
+pub fn check_str_is_num(string: &str) -> bool {
+    match string.parse::<u32>() {
+        Ok(_) => true,
+        Err(_) => false
     }
 }
 

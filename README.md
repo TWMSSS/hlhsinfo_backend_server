@@ -48,7 +48,7 @@
 系統       | 位置
 ---------- | --------------------
 `Linux`    | `/usr/etc/hlhsinfo_backend_server/config.yaml`
-`Windows`  | `%USERPROFILE%\AppData\Roaming\hlhsinfo_backend_server\config.yaml`
+`Windows`  | `%APPDATA%\hlhsinfo_backend_server\config.yaml`
 
 您可以設定以下參數 (預設自動生成設定檔)
 

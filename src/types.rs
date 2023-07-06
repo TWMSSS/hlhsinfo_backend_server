@@ -152,7 +152,7 @@ pub struct AvailableScoreData {
 pub struct ScoreDataValue {
     pub name: String,
     pub score: u8,
-    pub gpa: u8
+    pub gpa: f32
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -213,7 +213,7 @@ pub struct RewardAndPunishData {
 // API: /getLack
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LackRecordValue {
-    pub data: Option<Vec<String>>,
+    pub data: Vec<Option<String>>,
     pub date: String,
     pub week: String
 }
@@ -227,8 +227,8 @@ pub struct LackStatusValue {
 #[derive(Debug, Serialize, Deserialize)]
 #[allow(non_snake_case)]
 pub struct LackStatus {
-    pub termDown: Vec<LackRecordValue>,
-    pub termUp: Vec<LackRecordValue>
+    pub termDown: Vec<LackStatusValue>,
+    pub termUp: Vec<LackStatusValue>
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -60,10 +60,19 @@ fn err_server_error() -> Json<types::ErrorResponse> {
     })
 }
 
+#[catch(502)]
+fn err_bad_gateway() -> Json<types::ErrorResponse> {
+    Json(types::ErrorResponse { 
+        message: String::from(HTTPError::RemoteServiceUnavailable.message()),
+        timestamp: utils::get_timestamp_millisec(),
+        wrong: None
+    })
+}
+
 fn server_init(config: Figment) -> Rocket<Build> {
     let finit = rocket::custom(config)
         .attach(CORS)
-        .register("/", catchers![err_bad_request, err_unauthorized, err_forbidden, err_not_found, err_server_error])
+        .register("/", catchers![err_bad_request, err_unauthorized, err_forbidden, err_not_found, err_server_error, err_bad_gateway])
         .mount("/", routes![home])
         .mount("/v1", routes![home]);
 

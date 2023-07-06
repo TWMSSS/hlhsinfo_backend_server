@@ -4,10 +4,10 @@ use std::{path::Path, fs::{File, read_to_string}, io::prelude::*};
 use openssl::{pkey::Private, rsa::Rsa, hash::{Hasher, MessageDigest}};
 use lazy_static::lazy_static;
 
-use crate::types::CacheKeyData;
+use crate::{types::CacheKeyData, utils::DEFAULT_FILE_PATH};
 
-pub const PRIVATE_KEY_PATH: &str = "private.pem";
-pub const PUBLIC_KEY_PATH: &str = "public.pem";
+pub const PRIVATE_KEY_FILE: &str = "private.pem";
+pub const PUBLIC_KEY_FILE: &str = "public.pem";
 
 lazy_static! {
     static ref KEY: KeyPair = {
@@ -33,21 +33,24 @@ impl KeyPair {
     pub fn new(algorithm: Algorithm) -> Result<Self, Box<dyn std::error::Error>> {
         let mut private_key: Option<EncodingKey> = None;
         let mut public_key: Option<DecodingKey> = None;
+
+        let private_key_path = format!("{}/{}", *DEFAULT_FILE_PATH, PRIVATE_KEY_FILE);
+        let public_key_path = format!("{}/{}", *DEFAULT_FILE_PATH, PUBLIC_KEY_FILE);
         
-        if !Path::new(&PRIVATE_KEY_PATH).exists() || !Path::new(&PUBLIC_KEY_PATH).exists() {
+        if !Path::new(&private_key_path).exists() || !Path::new(&public_key_path).exists() {
             let rsa_key: Rsa<Private> = Rsa::generate(2048)?;
 
             let private_pem = rsa_key.private_key_to_pem()?;
             let public_pem = rsa_key.public_key_to_pem()?;
 
-            File::create(&PRIVATE_KEY_PATH)?.write_all(&private_pem)?;
-            File::create(&PUBLIC_KEY_PATH)?.write_all(&public_pem)?;
+            File::create(&private_key_path)?.write_all(&private_pem)?;
+            File::create(&public_key_path)?.write_all(&public_pem)?;
 
             private_key = Some(EncodingKey::from_rsa_pem(&private_pem)?);
             public_key = Some(DecodingKey::from_rsa_pem(&public_pem)?);
         } else {
-            private_key = Some(EncodingKey::from_rsa_pem(&read_to_string(&PRIVATE_KEY_PATH)?.as_bytes())?);
-            public_key = Some(DecodingKey::from_rsa_pem(&read_to_string(&PUBLIC_KEY_PATH)?.as_bytes())?);
+            private_key = Some(EncodingKey::from_rsa_pem(&read_to_string(&private_key_path)?.as_bytes())?);
+            public_key = Some(DecodingKey::from_rsa_pem(&read_to_string(&public_key_path)?.as_bytes())?);
         }
 
         Ok(Self {
@@ -57,11 +60,17 @@ impl KeyPair {
         })
     }
 
-    pub fn sign<T: Serialize>(&self, claims: &T) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn sign_jwt<T>(&self, claims: &T) -> Result<String, Box<dyn std::error::Error>>
+    where
+        T: Serialize
+    {
         Ok(encode(&Header::new(self.algorithm), claims, &self.private)?)
     }
 
-    pub fn decode_jwt<T: DeserializeOwned>(&self, token: &str) -> Result<jsonwebtoken::TokenData<T>, JWTError> {
+    pub fn decode_jwt<T>(&self, token: &str) -> Result<jsonwebtoken::TokenData<T>, JWTError>
+    where
+        T: DeserializeOwned
+    {
         let validation = Validation::new(self.algorithm);
         match decode::<T>(token, &self.public, &validation) {
             Ok(jwt) => Ok(jwt),
@@ -71,13 +80,27 @@ impl KeyPair {
             }
         }
     }
+
+    // TODO: create a function which is able to encrypt data or verify api server
+    // pub fn encryption<T>(&self, content: T) -> [u8]
+    // where
+    //     T: Serialize
+    // {
+
+    // }
 }
 
-pub fn sign<T: Serialize>(claims: &T) -> Result<std::string::String, Box<dyn std::error::Error>> {
-    KEY.sign::<T>(claims)
+pub fn sign_jwt<T>(claims: &T) -> Result<std::string::String, Box<dyn std::error::Error>>
+where
+    T: Serialize
+{
+    KEY.sign_jwt::<T>(claims)
 }
 
-pub fn decode_jwt<T: DeserializeOwned>(token: &str) -> Result<jsonwebtoken::TokenData<T>, JWTError> {
+pub fn decode_jwt<T>(token: &str) -> Result<jsonwebtoken::TokenData<T>, JWTError>
+where
+    T: DeserializeOwned
+{
     KEY.decode_jwt::<T>(token)
 }
 

@@ -6,7 +6,7 @@ use crate::{
     types::{APIResponseJSON, Login, ErrorReturn, AuthToken, LoginInfoAuthToken},
     request_handler::{IncomingDataWrapper, decode_incoming, IncomingError, AuthorizationToken},
     utils::{self, create_auth_header, get_timestamp, get_time_after, generate_http_error},
-    secure::sign,
+    secure::sign_jwt,
     http::{http_post, APIPaths},
     apis::v1::get_user_info_short::get_user_info_short,
     config::read_config
@@ -73,7 +73,7 @@ pub async fn api(auth: AuthorizationToken<LoginInfoAuthToken>, data: Result<Inco
         let user_data = get_user_info_short(auth.0.clone()).await;
 
         if let Ok(data) = user_data {
-            let token = sign(&AuthToken {
+            let token = sign_jwt(&AuthToken {
                 host: token.host,
                 cookie: token.cookie,
                 user_data: data,

@@ -9,7 +9,7 @@ use crate::{
     utils::{get_timestamp, self, get_time_after},
     error::HTTPError,
     http::{http_get_html, HTTPErrorReturn},
-    secure::sign
+    secure::sign_jwt
 };
 
 lazy_static! {
@@ -73,7 +73,7 @@ pub async fn api(host: Option<&str>) -> APIResponseJSON<LoginInfo> {
         None =>  false
     };
 
-    let token = sign(&LoginInfoAuthToken {
+    let token = sign_jwt(&LoginInfoAuthToken {
         host: hst,
         site_key: auth_code,
         cookie: cookie.to_owned(),
